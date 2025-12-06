@@ -1,0 +1,188 @@
+.sidebar {
+  background-color: #34495e;
+  color: white;
+  min-height: calc(100vh - 70px);
+  transition: width 0.3s ease;
+  position: relative;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar.open {
+  width: 280px;
+}
+
+.sidebar.closed {
+  width: 50px;
+}
+
+.sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar.closed .sidebar-header {
+  padding: 1rem;
+  justify-content: center;
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.sidebar.closed .sidebar-header h2 {
+  display: none;
+}
+
+.sidebar-toggle {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.sidebar-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-content {
+  padding: 1rem;
+  overflow-y: auto;
+  max-height: calc(100vh - 140px);
+}
+
+.sidebar-loading,
+.sidebar-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.sidebar-empty p {
+  margin: 0.5rem 0;
+}
+
+.grade-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.grade-item {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.grade-header {
+  width: 100%;
+  background-color: rgba(52, 152, 219, 0.2);
+  border: none;
+  color: white;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s;
+  border-radius: 4px;
+}
+
+.grade-header:hover {
+  background-color: rgba(52, 152, 219, 0.3);
+}
+
+.subject-list {
+  margin-left: 1rem;
+  margin-top: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.subject-item {
+  border-radius: 4px;
+}
+
+.subject-header {
+  width: 100%;
+  background-color: rgba(46, 204, 113, 0.2);
+  border: none;
+  color: white;
+  padding: 0.6rem 1rem;
+  text-align: left;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s;
+  border-radius: 4px;
+}
+
+.subject-header:hover {
+  background-color: rgba(46, 204, 113, 0.3);
+}
+
+.teacher-list {
+  margin-left: 1rem;
+  margin-top: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.teacher-link {
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  background-color: rgba(155, 89, 182, 0.2);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+  display: block;
+}
+
+.teacher-link:hover {
+  background-color: rgba(155, 89, 182, 0.4);
+}
+
+.expand-icon {
+  font-size: 0.8rem;
+  width: 1rem;
+  display: inline-block;
+}
+
+.grade-name,
+.subject-name {
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .sidebar.open {
+    width: 240px;
+  }
+
+  .sidebar-header {
+    padding: 1rem;
+  }
+
+  .sidebar-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .sidebar-content {
+    padding: 0.75rem;
+  }
+}
