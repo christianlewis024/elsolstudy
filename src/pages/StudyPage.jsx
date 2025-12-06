@@ -13,6 +13,7 @@ function StudyPage() {
   const [userAnswer, setUserAnswer] = useState('');
   const [loading, setLoading] = useState(true);
   const [startTime, setStartTime] = useState(null);
+  const [cardProgress, setCardProgress] = useState({});
 
   useEffect(() => {
     fetchBundleAndCards();
@@ -36,17 +37,16 @@ function StudyPage() {
 
       // Fetch cards
       const cardsRef = collection(db, 'flashcards');
-      const q = query(
-        cardsRef,
-        where('bundleId', '==', bundleId),
-        orderBy('order')
-      );
+      const q = query(cardsRef, where('bundleId', '==', bundleId));
       const snapshot = await getDocs(q);
 
       const cardsData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
+
+      // Sort by order in JavaScript instead
+      cardsData.sort((a, b) => (a.order || 0) - (b.order || 0));
 
       setCards(cardsData);
     } catch (error) {
@@ -60,11 +60,30 @@ function StudyPage() {
     setShowAnswer(true);
   };
 
-  const handleNextCard = (correct, skipped = false) => {
+  const handleDifficulty = (difficulty) => {
     const responseTime = startTime ? (Date.now() - startTime) / 1000 : 0;
+    const currentCard = cards[currentCardIndex];
 
-    // TODO: Save progress to local storage or Firebase
-    // TODO: Update spaced repetition algorithm
+    // Update card progress (expert meter)
+    const currentProgress = cardProgress[currentCard.id] || 0;
+    let newProgress = currentProgress;
+
+    // Adjust progress based on difficulty
+    if (difficulty === 'easy') {
+      newProgress = Math.min(100, currentProgress + 20);
+    } else if (difficulty === 'medium') {
+      newProgress = Math.min(100, currentProgress + 10);
+    } else if (difficulty === 'hard') {
+      newProgress = Math.max(0, currentProgress - 10);
+    }
+
+    setCardProgress({
+      ...cardProgress,
+      [currentCard.id]: newProgress
+    });
+
+    // TODO: Save progress to local storage or Firebase with difficulty rating
+    console.log('Card difficulty:', difficulty, 'Progress:', newProgress, 'Response time:', responseTime);
 
     setShowAnswer(false);
     setUserAnswer('');
@@ -76,10 +95,6 @@ function StudyPage() {
       alert('Great job! You have completed all cards in this set!');
       setCurrentCardIndex(0);
     }
-  };
-
-  const handleSkip = () => {
-    handleNextCard(false, true);
   };
 
   if (loading) {
@@ -98,6 +113,7 @@ function StudyPage() {
   }
 
   const currentCard = cards[currentCardIndex];
+  const expertProgress = cardProgress[currentCard.id] || 0;
 
   return (
     <div className="study-page">
@@ -109,81 +125,111 @@ function StudyPage() {
       </div>
 
       <div className="study-container">
-        <div className="flashcard">
-          <div className="card-question">
-            <h2>{currentCard.question}</h2>
+        <div className="flashcard-wrapper">
+          {/* Expert Meter */}
+          <div className="expert-meter">
+            <div className="expert-meter-label">Expert Level</div>
+            <div className="expert-meter-bar">
+              <div
+                className="expert-meter-fill"
+                style={{ height: `${expertProgress}%` }}
+              >
+                {expertProgress > 0 && <span className="expert-meter-text">{expertProgress}%</span>}
+              </div>
+            </div>
+            <div className="expert-meter-levels">
+              <span className="level-label">Beginner</span>
+              <span className="level-label">Expert</span>
+            </div>
           </div>
 
-          {!showAnswer ? (
-            <div className="card-actions">
-              {currentCard.questionType === 'typed' && (
-                <div className="typed-answer">
-                  <input
-                    type="text"
-                    value={userAnswer}
-                    onChange={(e) => setUserAnswer(e.target.value)}
-                    placeholder="Type your answer..."
-                    className="answer-input"
-                  />
-                </div>
-              )}
-
-              {currentCard.questionType === 'multiple_choice' && (
-                <div className="multiple-choice">
-                  {currentCard.multipleChoiceOptions?.map((option, index) => (
-                    <button
-                      key={index}
-                      className="choice-button"
-                      onClick={() => {
-                        setUserAnswer(option);
-                        setShowAnswer(true);
-                      }}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              <div className="action-buttons">
-                <button onClick={handleShowAnswer} className="btn btn-primary">
-                  Show Answer
-                </button>
-                <button onClick={handleSkip} className="btn btn-secondary">
-                  Skip
-                </button>
-              </div>
+          {/* Flash Card */}
+          <div className="flashcard">
+            <div className="card-question">
+              <h2>{currentCard.question}</h2>
             </div>
-          ) : (
-            <div className="card-answer">
-              <div className="answer-section">
-                <h3>Answer:</h3>
-                <p className="correct-answer">{currentCard.answer}</p>
 
-                {userAnswer && currentCard.questionType === 'typed' && (
-                  <div className="user-answer">
-                    <strong>Your answer:</strong> {userAnswer}
+            {!showAnswer ? (
+              <div className="card-actions">
+                {/* Multiple Choice */}
+                {currentCard.questionType === 'multiple_choice' && (
+                  <div className="multiple-choice">
+                    {currentCard.multipleChoiceOptions?.map((option, index) => (
+                      <button
+                        key={index}
+                        className={`choice-button ${userAnswer === option ? 'selected' : ''}`}
+                        onClick={() => setUserAnswer(option)}
+                      >
+                        {option}
+                      </button>
+                    ))}
                   </div>
                 )}
-              </div>
 
-              <div className="feedback-buttons">
-                <p>Did you get it right?</p>
-                <button
-                  onClick={() => handleNextCard(true)}
-                  className="btn btn-success"
-                >
-                  Correct
-                </button>
-                <button
-                  onClick={() => handleNextCard(false)}
-                  className="btn btn-error"
-                >
-                  Incorrect
+                {/* Typed Answer */}
+                {currentCard.questionType === 'typed' && (
+                  <div className="typed-answer">
+                    <input
+                      type="text"
+                      value={userAnswer}
+                      onChange={(e) => setUserAnswer(e.target.value)}
+                      placeholder="Type your answer..."
+                      className="answer-input"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && userAnswer.trim()) {
+                          handleShowAnswer();
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+
+                <button onClick={handleShowAnswer} className="btn btn-primary btn-large">
+                  Show Answer
                 </button>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="card-answer">
+                <div className="answer-section">
+                  <h3>Answer:</h3>
+                  <p className="correct-answer">{currentCard.answer}</p>
+
+                  {userAnswer && (
+                    <div className="user-answer-display">
+                      <strong>Your answer:</strong>
+                      <span className={userAnswer.toLowerCase().trim() === currentCard.answer.toLowerCase().trim() ? 'correct' : 'incorrect'}>
+                        {userAnswer}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="difficulty-buttons">
+                  <p className="difficulty-prompt">How difficult was this?</p>
+                  <div className="difficulty-options">
+                    <button
+                      onClick={() => handleDifficulty('easy')}
+                      className="btn btn-difficulty btn-easy"
+                    >
+                      😊 Easy
+                    </button>
+                    <button
+                      onClick={() => handleDifficulty('medium')}
+                      className="btn btn-difficulty btn-medium"
+                    >
+                      🤔 Medium
+                    </button>
+                    <button
+                      onClick={() => handleDifficulty('hard')}
+                      className="btn btn-difficulty btn-hard"
+                    >
+                      😅 Hard
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {currentCard.targetTime && (

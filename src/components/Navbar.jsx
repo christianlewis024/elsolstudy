@@ -33,12 +33,12 @@ function Navbar() {
         <div className="navbar-right">
           {isAdmin && (
             <Link to="/teacher/dashboard" className="navbar-link teacher-link">
-              My Classes
+              <span>My Classes</span>
             </Link>
           )}
 
           <Link to="/settings" className="navbar-link">
-            Settings
+            <span>Settings</span>
           </Link>
 
           {currentUser ? (

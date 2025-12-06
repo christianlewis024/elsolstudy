@@ -2,24 +2,25 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background: var(--bg-primary);
 }
 
 .app-container {
   display: flex;
   flex: 1;
+  position: relative;
 }
 
 .main-content {
   flex: 1;
-  background-color: #f5f6fa;
+  background: transparent;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;
-  color: #7f8c8d;
-  font-size: 1.1rem;
+/* Mobile adjustments */
+@media (max-width: 1024px) {
+  .main-content {
+    width: 100%;
+  }
 }
